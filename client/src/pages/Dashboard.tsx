@@ -332,8 +332,8 @@ export default function Dashboard() {
           <h3 className="font-semibold text-surface-800 mb-4">Audit Status Overview</h3>
           {audits && (
             <div className="flex items-center gap-6">
-              <ResponsiveContainer width={160} height={160}>
-                <PieChart>
+              <div style={{ width: 160, height: 160 }}>
+                <PieChart width={160} height={160}>
                   <Pie
                     data={[
                       { name: 'Completed', value: audits.completed || 0 },
@@ -351,7 +351,7 @@ export default function Dashboard() {
                     ))}
                   </Pie>
                 </PieChart>
-              </ResponsiveContainer>
+              </div>
               <div className="space-y-2">
                 {[
                   { label: 'Completed', value: audits.completed || 0, color: 'bg-accent-400' },
