@@ -1,14 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-/** Strip markdown code fences then extract the first JSON object from AI text */
-function extractJSON(text: string): any {
-  const stripped = text.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
-  const match = stripped.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return JSON.parse(match[0]);
-}
+import { getAnthropicClient, extractJSON } from '../utils/ai';
 
 const SYSTEM_PROMPT = `You are QualityAI, an expert quality management agent for a large FMCG manufacturer in India that exports to 35+ countries. You have deep expertise in:
 - Food safety standards (FSSAI, HACCP, ISO 22000, BRC, FSSC 22000)
@@ -38,7 +28,7 @@ export async function generateAuditChecklist(
   supplier?: string,
   location?: string
 ): Promise<{ checklist: string[]; guidelines: string }> {
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 2000,
     thinking: { type: 'adaptive' },
@@ -92,7 +82,7 @@ export async function analyzeAuditFindings(
   correctiveActions: Array<{ action: string; priority: string; deadline: string; responsible: string }>;
   preventiveActions: string[];
 }> {
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 3000,
     thinking: { type: 'adaptive' },
@@ -184,7 +174,7 @@ export async function getCountryRequirements(
       };
     }
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 3000,
       thinking: { type: 'adaptive' },
@@ -288,7 +278,7 @@ export async function predictShelfLife(
       };
     }
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 2500,
       thinking: { type: 'adaptive' },
@@ -383,7 +373,7 @@ export async function checkContaminationRisks(
       };
     }
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 3000,
       thinking: { type: 'adaptive' },
@@ -462,7 +452,7 @@ export async function chatWithQualityAgent(
     ? `${SYSTEM_PROMPT}\n\nCurrent context: ${context}`
     : SYSTEM_PROMPT;
 
-  const stream = client.messages.stream({
+  const stream = getAnthropicClient().messages.stream({
     model: 'claude-opus-4-6',
     max_tokens: 2000,
     system: systemWithContext,

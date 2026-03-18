@@ -1,14 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-/** Strip markdown code fences then extract the first JSON object from AI text */
-function extractJSON(text: string): any {
-  const stripped = text.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
-  const match = stripped.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return JSON.parse(match[0]);
-}
+import { getAnthropicClient, extractJSON } from '../utils/ai';
 
 const SYSTEM_PROMPT = `You are FinanceAI, an expert financial and export compliance agent for a large FMCG manufacturer in India exporting to 35+ countries. You have deep expertise in:
 - Export documentation (Commercial Invoice, Packing List, Bill of Lading, Certificate of Origin, Health Certificate)
@@ -59,7 +49,7 @@ export async function validateInvoiceCompliance(
 }> {
   const itemsText = items.map((i) => `- ${i.description}: ${i.quantity} units @ ${currency} ${i.unitPrice} = ${currency} ${i.total}`).join('\n');
 
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 3000,
     thinking: { type: 'adaptive' },
@@ -127,7 +117,7 @@ export async function generateExportDocumentChecklist(
   labelingRequirements: string[];
   timeline: string;
 }> {
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 3000,
     thinking: { type: 'adaptive' },
@@ -198,7 +188,7 @@ export async function analyzeFinancialRisk(
   recommendedPaymentTerms: string;
   creditRecommendation: string;
 }> {
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
@@ -274,7 +264,7 @@ export async function classifyHSCodes(
       .map((i, idx) => `${idx + 1}. "${i.description}" destined for ${i.destinationCountry}`)
       .join('\n');
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 3000,
       thinking: { type: 'adaptive' },
@@ -366,7 +356,7 @@ export async function analyzeExportIncentives(
       .map((i, idx) => `${idx + 1}. ${i.description} (HS Code: ${i.hsCode})`)
       .join('\n');
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 3000,
       thinking: { type: 'adaptive' },
@@ -456,7 +446,7 @@ export async function analyzeFTABenefits(
       .map((i, idx) => `${idx + 1}. ${i.description}${i.hsCode ? ` (HS Code: ${i.hsCode})` : ''}`)
       .join('\n');
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 3000,
       thinking: { type: 'adaptive' },
@@ -530,7 +520,7 @@ export async function chatWithFinanceAgent(
     ? `${SYSTEM_PROMPT}\n\nCurrent context: ${context}`
     : SYSTEM_PROMPT;
 
-  const finalMsg = await client.messages.create({
+  const finalMsg = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 2000,
     system: systemWithContext,

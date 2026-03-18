@@ -10,6 +10,8 @@ import {
 } from '../agents/complaintAgent';
 import { v4 as uuidv4 } from 'uuid';
 import { aiLimiter } from '../middleware/rateLimiter';
+import { isAIAvailable } from '../utils/ai';
+import type { Complaint, BatchTrace, CountRow } from '../types';
 
 const router = Router();
 
@@ -43,7 +45,7 @@ router.get('/analytics/summary', (req: Request, res: Response) => {
     const byPriority = db.prepare('SELECT priority, COUNT(*) as count FROM complaints GROUP BY priority').all();
     const byCategory = db.prepare('SELECT category, COUNT(*) as count FROM complaints GROUP BY category').all();
     const byCountry = db.prepare('SELECT customer_country, COUNT(*) as count FROM complaints GROUP BY customer_country ORDER BY count DESC LIMIT 10').all();
-    const total = (db.prepare('SELECT COUNT(*) as c FROM complaints').get() as any).c;
+    const total = (db.prepare('SELECT COUNT(*) as c FROM complaints').get() as unknown as CountRow).c;
 
     res.json({ total, byStatus, byPriority, byCategory, byCountry });
   } catch (error) {
@@ -122,6 +124,11 @@ router.post('/', aiLimiter, async (req: Request, res: Response) => {
 // Chat with complaint agent — must be before POST /:id/* routes
 router.post('/chat', aiLimiter, async (req: Request, res: Response) => {
   try {
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        response: 'AI chat requires ANTHROPIC_API_KEY. Please add your key to .env and restart the server.',
+      });
+    }
     const { messages, context } = req.body;
     const response = await chatWithComplaintAgent(messages, context);
     res.json({ response });
@@ -147,7 +154,15 @@ router.get('/:id', (req: Request, res: Response) => {
 // Perform root cause analysis
 router.post('/:id/rca', aiLimiter, async (req: Request, res: Response) => {
   try {
-    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as any;
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        rca: null,
+      });
+    }
+
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as unknown as Complaint | undefined;
     if (!complaint) return res.status(404).json({ error: 'Complaint not found' });
 
     const rca = await performRootCauseAnalysis(
@@ -171,8 +186,16 @@ router.post('/:id/rca', aiLimiter, async (req: Request, res: Response) => {
 // Generate response letter
 router.post('/:id/response-letter', aiLimiter, async (req: Request, res: Response) => {
   try {
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        letter: null,
+      });
+    }
+
     const { resolution } = req.body;
-    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as any;
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as unknown as Complaint | undefined;
     if (!complaint) return res.status(404).json({ error: 'Complaint not found' });
 
     const letter = await generateResponseLetter(
@@ -204,7 +227,15 @@ router.post('/:id/regulatory-notification', aiLimiter, async (req: Request, res:
       return res.status(400).json({ error: 'authority is required' });
     }
 
-    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as any;
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        notification: null,
+      });
+    }
+
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as unknown as Complaint | undefined;
     if (!complaint) return res.status(404).json({ error: 'Complaint not found' });
 
     const result = await generateRegulatoryNotification(
@@ -228,14 +259,14 @@ router.post('/:id/regulatory-notification', aiLimiter, async (req: Request, res:
 // Get batch trace and AI analysis for a complaint
 router.get('/:id/batch-trace', async (req: Request, res: Response) => {
   try {
-    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as any;
+    const complaint = db.prepare('SELECT * FROM complaints WHERE id = ?').get(req.params.id) as unknown as Complaint | undefined;
     if (!complaint) return res.status(404).json({ error: 'Complaint not found' });
 
     if (!complaint.batch_number) {
       return res.status(404).json({ error: 'No batch number associated with this complaint' });
     }
 
-    const batchTrace = db.prepare('SELECT * FROM batch_trace WHERE batch_number = ?').get(complaint.batch_number) as any;
+    const batchTrace = db.prepare('SELECT * FROM batch_trace WHERE batch_number = ?').get(complaint.batch_number) as unknown as BatchTrace | undefined;
     if (!batchTrace) {
       return res.status(404).json({ error: 'Batch trace data not found for batch ' + complaint.batch_number });
     }

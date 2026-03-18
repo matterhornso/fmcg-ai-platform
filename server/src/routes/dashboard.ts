@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db/database';
+import type { DashboardAuditStats, DashboardComplaintStats, DashboardFinanceStats } from '../types';
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.get('/stats', (req: Request, res: Response) => {
         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
         AVG(CASE WHEN score IS NOT NULL THEN score END) as avg_score
       FROM audits
-    `).get() as any;
+    `).get() as unknown as DashboardAuditStats;
 
     const complaints = db.prepare(`
       SELECT
@@ -32,7 +33,7 @@ router.get('/stats', (req: Request, res: Response) => {
         SUM(CASE WHEN status = 'resolved' THEN 1 ELSE 0 END) as resolved,
         SUM(CASE WHEN priority = 'critical' THEN 1 ELSE 0 END) as critical
       FROM complaints
-    `).get() as any;
+    `).get() as unknown as DashboardComplaintStats;
 
     const finance = db.prepare(`
       SELECT
@@ -41,7 +42,7 @@ router.get('/stats', (req: Request, res: Response) => {
         SUM(CASE WHEN status = 'pending' OR status = 'review_required' THEN 1 ELSE 0 END) as pending_review,
         COUNT(DISTINCT destination_country) as countries
       FROM invoices
-    `).get() as any;
+    `).get() as unknown as DashboardFinanceStats;
 
     const complaintsByCountry = db.prepare(`
       SELECT customer_country, COUNT(*) as count

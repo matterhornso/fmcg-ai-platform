@@ -1,14 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-/** Strip markdown code fences then extract the first JSON object from AI text */
-function extractJSON(text: string): any {
-  const stripped = text.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '');
-  const match = stripped.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  return JSON.parse(match[0]);
-}
+import { getAnthropicClient, extractJSON } from '../utils/ai';
 
 const SYSTEM_PROMPT = `You are ComplaintAI, an expert customer complaint management agent for a large FMCG manufacturer in India that exports to 35+ countries. You have deep expertise in:
 - Consumer complaint classification and triage
@@ -50,7 +40,7 @@ export async function classifyAndAnalyzeComplaint(
   regulatoryBodies: string[];
   summary: string;
 }> {
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 2500,
     thinking: { type: 'adaptive' },
@@ -114,7 +104,7 @@ export async function generateResponseLetter(
   resolution: string,
   category: string
 ): Promise<string> {
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 2000,
     system: SYSTEM_PROMPT,
@@ -166,7 +156,7 @@ export async function performRootCauseAnalysis(
   mostLikelyCause: string;
   preventiveRecommendations: string[];
 }> {
-  const response = await client.messages.create({
+  const response = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 3000,
     thinking: { type: 'adaptive' },
@@ -261,7 +251,7 @@ export async function generateRegulatoryNotification(
       };
     }
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 3000,
       thinking: { type: 'adaptive' },
@@ -352,7 +342,7 @@ export async function analyzeBatchTrace(
       };
     }
 
-    const response = await client.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 2500,
       thinking: { type: 'adaptive' },
@@ -420,7 +410,7 @@ export async function chatWithComplaintAgent(
     ? `${SYSTEM_PROMPT}\n\nCurrent complaint context: ${context}`
     : SYSTEM_PROMPT;
 
-  const finalMsg = await client.messages.create({
+  const finalMsg = await getAnthropicClient().messages.create({
     model: 'claude-opus-4-6',
     max_tokens: 2000,
     system: systemWithContext,

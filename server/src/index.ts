@@ -15,6 +15,14 @@ import { getCacheStats } from './utils/cache';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
+// Validate required env
+const requiredEnv = ['PORT'];
+for (const key of requiredEnv) {
+  if (!process.env[key]) {
+    console.warn(`Warning: ${key} not set in .env, using default`);
+  }
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 const startTime = Date.now();
@@ -131,6 +139,17 @@ app.get('/api/health', (req, res) => {
     cache: cacheStats,
   });
 });
+
+// Serve client build in production
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.join(__dirname, '../../client/dist');
+  app.use(express.static(clientDist));
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(clientDist, 'index.html'));
+    }
+  });
+}
 
 // Error handler — must be last middleware
 app.use(errorHandler);

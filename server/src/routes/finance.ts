@@ -12,6 +12,8 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { aiLimiter } from '../middleware/rateLimiter';
 import { getCached, setCache } from '../utils/cache';
+import { isAIAvailable } from '../utils/ai';
+import type { Invoice, CountRow } from '../types';
 
 const router = Router();
 
@@ -35,7 +37,7 @@ router.get('/analytics/summary', (req: Request, res: Response) => {
     const byStatus = db.prepare('SELECT status, COUNT(*) as count FROM invoices GROUP BY status').all();
     const byCurrency = db.prepare('SELECT currency, SUM(total_amount) as total, COUNT(*) as count FROM invoices GROUP BY currency').all();
     const byCountry = db.prepare('SELECT destination_country, COUNT(*) as count, SUM(total_amount) as total FROM invoices GROUP BY destination_country ORDER BY total DESC LIMIT 10').all();
-    const total = db.prepare('SELECT COUNT(*) as c, SUM(total_amount) as t FROM invoices').get() as any;
+    const total = db.prepare('SELECT COUNT(*) as c, SUM(total_amount) as t FROM invoices').get() as unknown as CountRow;
 
     res.json({ totalInvoices: total.c, totalValue: total.t, byStatus, byCurrency, byCountry });
   } catch (error) {
@@ -57,7 +59,7 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Items must be an array' });
     }
     // Auto-generate invoice number if not provided
-    const countNum = (db.prepare('SELECT COUNT(*) as c FROM invoices').get() as any).c + 1;
+    const countNum = (db.prepare('SELECT COUNT(*) as c FROM invoices').get() as unknown as CountRow).c + 1;
     const invoiceNumber = req.body.invoiceNumber || `INV-${new Date().getFullYear()}-${String(countNum).padStart(4, '0')}`;
 
     const id = uuidv4();
@@ -92,6 +94,14 @@ router.post('/checklist', aiLimiter, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'destinationCountry and productType are required' });
     }
 
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        checklist: null,
+      });
+    }
+
     const terms = paymentTerms || 'NET 30';
     const inco = incoterms || 'FOB';
     const cacheKey = `checklist:${destinationCountry}:${productType}:${terms}:${inco}`;
@@ -118,6 +128,11 @@ router.post('/checklist', aiLimiter, async (req: Request, res: Response) => {
 // Chat with finance agent — must be before POST /:id/* routes
 router.post('/chat', aiLimiter, async (req: Request, res: Response) => {
   try {
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        response: 'AI chat requires ANTHROPIC_API_KEY. Please add your key to .env and restart the server.',
+      });
+    }
     const { messages, context } = req.body;
     const response = await chatWithFinanceAgent(messages, context);
     res.json({ response });
@@ -143,7 +158,15 @@ router.get('/:id', (req: Request, res: Response) => {
 // Validate invoice compliance
 router.post('/:id/validate', aiLimiter, async (req: Request, res: Response) => {
   try {
-    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        compliance: null,
+      });
+    }
+
+    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as unknown as Invoice | undefined;
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
     const items = JSON.parse(invoice.items || '[]');
@@ -179,7 +202,15 @@ router.post('/:id/validate', aiLimiter, async (req: Request, res: Response) => {
 // Analyze financial risk
 router.post('/:id/risk-analysis', aiLimiter, async (req: Request, res: Response) => {
   try {
-    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        riskAnalysis: null,
+      });
+    }
+
+    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as unknown as Invoice | undefined;
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
     const riskAnalysis = await analyzeFinancialRisk(
@@ -200,7 +231,15 @@ router.post('/:id/risk-analysis', aiLimiter, async (req: Request, res: Response)
 // Classify HS codes for invoice items
 router.post('/:id/hs-classify', aiLimiter, async (req: Request, res: Response) => {
   try {
-    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        classification: null,
+      });
+    }
+
+    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as unknown as Invoice | undefined;
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
     const items = JSON.parse(invoice.items || '[]');
@@ -227,7 +266,15 @@ router.post('/:id/hs-classify', aiLimiter, async (req: Request, res: Response) =
 // Analyze export incentives for invoice
 router.post('/:id/incentives', aiLimiter, async (req: Request, res: Response) => {
   try {
-    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        incentives: null,
+      });
+    }
+
+    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as unknown as Invoice | undefined;
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
     const parsedItems = JSON.parse(invoice.items || '[]');
@@ -263,7 +310,15 @@ router.post('/:id/incentives', aiLimiter, async (req: Request, res: Response) =>
 // Analyze FTA benefits for invoice
 router.post('/:id/fta-benefits', aiLimiter, async (req: Request, res: Response) => {
   try {
-    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as any;
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        ftaBenefits: null,
+      });
+    }
+
+    const invoice = db.prepare('SELECT * FROM invoices WHERE id = ?').get(req.params.id) as unknown as Invoice | undefined;
     if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
 
     const parsedItems = JSON.parse(invoice.items || '[]');

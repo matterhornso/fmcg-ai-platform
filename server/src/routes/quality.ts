@@ -4,6 +4,8 @@ import { generateAuditChecklist, analyzeAuditFindings, getCountryRequirements, p
 import { v4 as uuidv4 } from 'uuid';
 import { aiLimiter } from '../middleware/rateLimiter';
 import { getCached, setCache } from '../utils/cache';
+import { isAIAvailable } from '../utils/ai';
+import type { Audit } from '../types';
 
 const router = Router();
 
@@ -82,6 +84,16 @@ router.post('/country-requirements', aiLimiter, async (req: Request, res: Respon
       return res.status(400).json({ error: 'country and productCategory are required' });
     }
 
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        country,
+        productCategory,
+        requirements: [],
+      });
+    }
+
     const cacheKey = `country:${country}:${productCategory}`;
     const cached = getCached(cacheKey);
     if (cached) {
@@ -104,6 +116,16 @@ router.post('/shelf-life', aiLimiter, async (req: Request, res: Response) => {
     const { product, destinationCountry, shippingMode, season, packagingType } = req.body;
     if (!product || !destinationCountry || !shippingMode || !season || !packagingType) {
       return res.status(400).json({ error: 'product, destinationCountry, shippingMode, season, and packagingType are required' });
+    }
+
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        product,
+        destinationCountry,
+        prediction: null,
+      });
     }
 
     const cacheKey = `shelf:${product}:${destinationCountry}:${shippingMode}:${season}:${packagingType}`;
@@ -130,6 +152,16 @@ router.post('/contamination-risks', aiLimiter, async (req: Request, res: Respons
       return res.status(400).json({ error: 'product and destinationCountry are required' });
     }
 
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        product,
+        destinationCountry,
+        risks: [],
+      });
+    }
+
     const cacheKey = `contamination:${product}:${destinationCountry}`;
     const cached = getCached(cacheKey);
     if (cached) {
@@ -149,6 +181,11 @@ router.post('/contamination-risks', aiLimiter, async (req: Request, res: Respons
 // Chat with quality agent
 router.post('/chat', aiLimiter, async (req: Request, res: Response) => {
   try {
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        response: 'AI chat requires ANTHROPIC_API_KEY. Please add your key to .env and restart the server.',
+      });
+    }
     const { messages, context } = req.body;
     const response = await chatWithQualityAgent(messages, context);
     res.json({ response });
@@ -174,8 +211,16 @@ router.get('/:id', (req: Request, res: Response) => {
 // Analyze audit findings
 router.post('/:id/analyze', aiLimiter, async (req: Request, res: Response) => {
   try {
+    if (!isAIAvailable()) {
+      return res.status(200).json({
+        aiAvailable: false,
+        message: 'AI features require ANTHROPIC_API_KEY in .env',
+        analysis: null,
+      });
+    }
+
     const { findings } = req.body;
-    const audit = db.prepare('SELECT * FROM audits WHERE id = ?').get(req.params.id) as any;
+    const audit = db.prepare('SELECT * FROM audits WHERE id = ?').get(req.params.id) as unknown as Audit | undefined;
     if (!audit) return res.status(404).json({ error: 'Audit not found' });
 
     const checklist = audit.checklist ? JSON.parse(audit.checklist) : [];
