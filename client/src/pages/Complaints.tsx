@@ -26,6 +26,7 @@ import Modal from '../components/ui/Modal';
 import Toast, { ToastData } from '../components/ui/Toast';
 import AIChat from '../components/AIChat';
 import { statusBadge, priorityBadge } from '../components/ui/Badge';
+import { EXPORT_COUNTRIES } from '../constants';
 
 function daysSince(dateStr: string): number {
   if (!dateStr) return 0;
@@ -158,11 +159,7 @@ export default function Complaints() {
     c.complaint_ref?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const countries = [
-    'Germany', 'United Kingdom', 'UAE', 'Qatar', 'Singapore', 'USA',
-    'Australia', 'Saudi Arabia', 'Canada', 'France', 'Netherlands',
-    'Japan', 'South Korea', 'Malaysia', 'Thailand', 'Other'
-  ];
+  const countries = EXPORT_COUNTRIES;
 
   return (
     <div className="space-y-6">

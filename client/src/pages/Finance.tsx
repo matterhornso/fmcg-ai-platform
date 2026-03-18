@@ -26,6 +26,7 @@ import Modal from '../components/ui/Modal';
 import Toast, { ToastData } from '../components/ui/Toast';
 import AIChat from '../components/AIChat';
 import { statusBadge } from '../components/ui/Badge';
+import { EXPORT_COUNTRIES, CURRENCIES, INCOTERMS, PAYMENT_TERMS } from '../constants';
 
 export default function Finance() {
   const [showNew, setShowNew] = useState(false);
@@ -145,13 +146,9 @@ export default function Finance() {
     inv.destination_country?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const countries = [
-    'United Kingdom', 'Germany', 'France', 'Netherlands', 'UAE', 'Saudi Arabia',
-    'Qatar', 'Singapore', 'USA', 'Canada', 'Australia', 'Japan', 'South Korea',
-    'Malaysia', 'Thailand', 'South Africa', 'Kenya', 'Other'
-  ];
+  const countries = EXPORT_COUNTRIES;
 
-  const incotermsOptions = ['EXW', 'FCA', 'FAS', 'FOB', 'CFR', 'CIF', 'CPT', 'CIP', 'DPU', 'DAP', 'DDP'];
+  const incotermsOptions = INCOTERMS;
 
   return (
     <div className="space-y-6">
@@ -479,12 +476,7 @@ export default function Finance() {
             <div>
               <label className="label">Currency</label>
               <select className="input font-mono" value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })}>
-                <option value="USD">USD</option>
-                <option value="GBP">GBP</option>
-                <option value="EUR">EUR</option>
-                <option value="AED">AED</option>
-                <option value="SGD">SGD</option>
-                <option value="INR">INR</option>
+                {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
@@ -496,14 +488,7 @@ export default function Finance() {
             <div className="sm:col-span-2">
               <label className="label">Payment Terms</label>
               <select className="input" value={form.paymentTerms} onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })}>
-                <option>NET 30</option>
-                <option>NET 45</option>
-                <option>NET 60</option>
-                <option>LC at Sight</option>
-                <option>LC 30 days</option>
-                <option>DP at Sight</option>
-                <option>DA 30 days</option>
-                <option>Advance Payment</option>
+                {PAYMENT_TERMS.map((t) => <option key={t}>{t}</option>)}
               </select>
             </div>
           </div>
@@ -637,7 +622,7 @@ export default function Finance() {
               <div>
                 <label className="label">Payment Terms</label>
                 <select className="input" value={checklistForm.paymentTerms} onChange={(e) => setChecklistForm({ ...checklistForm, paymentTerms: e.target.value })}>
-                  <option>NET 30</option><option>NET 60</option><option>LC at Sight</option><option>DP at Sight</option>
+                  {PAYMENT_TERMS.map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div>

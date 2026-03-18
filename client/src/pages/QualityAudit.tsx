@@ -22,6 +22,7 @@ import Modal from '../components/ui/Modal';
 import Toast, { ToastData } from '../components/ui/Toast';
 import AIChat from '../components/AIChat';
 import { statusBadge } from '../components/ui/Badge';
+import { EXPORT_COUNTRIES } from '../constants';
 
 function timeAgo(dateStr: string): string {
   if (!dateStr) return '';
@@ -123,11 +124,7 @@ export default function QualityAudit() {
     { value: 'haccp', label: 'HACCP Review' },
   ];
 
-  const countries = [
-    'United Kingdom', 'Germany', 'France', 'Netherlands', 'UAE', 'Saudi Arabia',
-    'Qatar', 'Singapore', 'USA', 'Canada', 'Australia', 'Japan', 'South Korea',
-    'Malaysia', 'Thailand', 'South Africa', 'Kenya', 'Other'
-  ];
+  const countries = EXPORT_COUNTRIES;
 
   const shippingModes = ['Sea Freight', 'Air Freight', 'Land Transport'];
   const seasons = ['Summer', 'Winter', 'Monsoon', 'Spring'];
