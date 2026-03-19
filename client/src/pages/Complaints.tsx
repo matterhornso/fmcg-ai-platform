@@ -183,7 +183,7 @@ export default function Complaints() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Complaint List */}
-        <div className="lg:col-span-2 space-y-3">
+        <div className="lg:col-span-2 space-y-3" data-tour="complaint-list">
           {/* Search + Filter */}
           <div className="flex flex-wrap gap-2">
             <div className="relative flex-1 min-w-[200px]">
@@ -421,7 +421,7 @@ export default function Complaints() {
         </div>
 
         {/* AI Chat */}
-        <div className="h-[400px] lg:h-[600px]">
+        <div className="h-[400px] lg:h-[600px]" data-tour="ai-chat">
           <AIChat agentType="complaints" placeholder="Ask ComplaintAI about complaint handling, root cause methods, regulatory requirements, response drafting..." />
         </div>
       </div>

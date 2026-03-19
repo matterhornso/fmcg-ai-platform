@@ -18,14 +18,28 @@ import {
   Info,
   Sparkles,
   Activity,
+  Compass,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { statusBadge, priorityBadge } from '../components/ui/Badge';
+import GuidedTour from '../components/GuidedTour';
 
 const COLORS = ['#f0a500', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6'];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+  const [tourActive, setTourActive] = useState(false);
+  const [tourCompleted, setTourCompleted] = useState(
+    () => localStorage.getItem('fmcg_tour_completed') === 'true'
+  );
+
+  const handleTourComplete = () => {
+    setTourActive(false);
+    setTourCompleted(true);
+    localStorage.setItem('fmcg_tour_completed', 'true');
+  };
+
   const [welcomeDismissed, setWelcomeDismissed] = useState(
     () => localStorage.getItem('fmcg_welcome_dismissed') === 'true'
   );
@@ -226,16 +240,29 @@ export default function Dashboard() {
             </span>
           </div>
         </div>
-        <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${health?.aiEnabled ? 'bg-success-50 border-success-200' : 'bg-surface-100 border-surface-200'}`}>
-          <div className={`w-2 h-2 rounded-full ${health?.aiEnabled ? 'bg-success-500 animate-pulse' : 'bg-surface-400'}`} />
-          <span className={`text-sm font-medium ${health?.aiEnabled ? 'text-success-700' : 'text-surface-500'}`}>
-            {health?.aiEnabled ? '3 AI Agents Active' : 'AI Agents Offline'}
-          </span>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <button
+              onClick={() => setTourActive(true)}
+              className={`btn-secondary flex items-center gap-2 ${!tourCompleted ? 'tour-hint-glow' : ''}`}
+            >
+              <Compass className="w-4 h-4" /> Take a Tour
+            </button>
+            {!tourCompleted && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent-400 rounded-full animate-pulse" />
+            )}
+          </div>
+          <div className={`flex items-center gap-2 rounded-lg px-3 py-2 border ${health?.aiEnabled ? 'bg-success-50 border-success-200' : 'bg-surface-100 border-surface-200'}`}>
+            <div className={`w-2 h-2 rounded-full ${health?.aiEnabled ? 'bg-success-500 animate-pulse' : 'bg-surface-400'}`} />
+            <span className={`text-sm font-medium ${health?.aiEnabled ? 'text-success-700' : 'text-surface-500'}`}>
+              {health?.aiEnabled ? '3 AI Agents Active' : 'AI Agents Offline'}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="dashboard-stats">
         {statCards.map((card) => (
           <Link key={card.title} to={card.link}>
             <div className="card card-hover-lift p-5 cursor-pointer group relative overflow-hidden">
@@ -268,7 +295,7 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="card p-5">
+      <div className="card p-5" data-tour="quick-actions">
         <h3 className="font-semibold text-surface-800 mb-4">Quick AI Actions</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <Link to="/quality" className="flex items-center gap-3 p-3 border border-success-200 bg-success-50 hover:bg-success-100 rounded-xl transition-all duration-200 hover:shadow-sm">
@@ -462,6 +489,11 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <GuidedTour
+        startTour={tourActive}
+        onComplete={handleTourComplete}
+        navigate={navigate}
+      />
     </div>
   );
 }

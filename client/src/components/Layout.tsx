@@ -77,7 +77,7 @@ export default function Layout({ children }: LayoutProps) {
         />
 
         {/* Logo */}
-        <div className="relative p-5 border-b border-white/5">
+        <div className="relative p-5 border-b border-white/5" data-tour="sidebar-logo">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-gradient-to-br from-accent-400 to-accent-600 shadow-lg shadow-accent-400/20">
               <Factory className="w-5 h-5 text-surface-900" />
@@ -90,7 +90,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         {/* AI Status */}
-        <div className="relative px-4 py-3 border-b border-white/5">
+        <div className="relative px-4 py-3 border-b border-white/5" data-tour="ai-status">
           <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 border border-white/5">
             <Zap className="w-4 h-4 text-accent-400" />
             <div>
@@ -115,7 +115,7 @@ export default function Layout({ children }: LayoutProps) {
         </button>
 
         {/* Navigation */}
-        <nav aria-label="Main navigation" className="relative flex-1 p-4 space-y-1">
+        <nav aria-label="Main navigation" className="relative flex-1 p-4 space-y-1" data-tour="sidebar-nav">
           {navItems.map(({ path, label, icon: Icon }) => (
             <NavLink
               key={path}

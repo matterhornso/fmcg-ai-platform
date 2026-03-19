@@ -165,7 +165,7 @@ export default function QualityAudit() {
           <h1 className="text-2xl font-bold text-surface-800">Quality Audits</h1>
           <p className="text-surface-500 text-sm mt-1">AI-generated checklists · CAPA management · Compliance tracking</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2" data-tour="quality-ai-tools">
           <button onClick={() => { setShowContamination(true); setContaminationResult(null); setContaminationForm({ product: '', destinationCountry: '' }); }} className="btn-secondary flex items-center gap-2 text-danger-600 border-danger-200 hover:bg-danger-50">
             <FlaskConical className="w-4 h-4" /> Contamination Risks
           </button>
@@ -191,7 +191,7 @@ export default function QualityAudit() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left: Audit List */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-4" data-tour="audit-list">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-surface-400" />
             <input

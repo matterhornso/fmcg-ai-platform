@@ -202,7 +202,7 @@ export default function Finance() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Invoice List */}
-        <div className="lg:col-span-2 space-y-3">
+        <div className="lg:col-span-2 space-y-3" data-tour="invoice-list">
           <div className="relative">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-surface-400" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="input pl-9" />
@@ -288,7 +288,7 @@ export default function Finance() {
                       </div>
                     </div>
                     {!isExpanded && (
-                      <div className="flex gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-2 mt-2" data-tour="invoice-actions" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleValidate(inv.id)}
                           disabled={loadingAction === `validate-${inv.id}`}
