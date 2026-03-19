@@ -1,7 +1,7 @@
 # FMCG AI Platform -- Technical Audit Report
 
 **Date:** 2026-03-18
-**Auditor:** Claude Opus 4.6 (automated)
+**Auditor:** Internal QA
 **Scope:** Server-side code, database, API design, test suite
 **Methodology:** Six skill frameworks applied against codebase (Security, API Design, Database Schema, Performance, Backend Testing, Playwright Best Practices)
 

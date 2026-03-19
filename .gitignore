@@ -11,3 +11,4 @@ __pycache__/
 .agents/skills/*/node_modules/
 .claude/skills/gstack/node_modules/
 .claude/skills/gstack/browse/dist/
+.gstack/
