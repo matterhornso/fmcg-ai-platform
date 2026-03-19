@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import {
@@ -21,12 +21,14 @@ import {
   Trash2,
   Info,
   Scale,
+  Download,
 } from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import Toast, { ToastData } from '../components/ui/Toast';
 import AIChat from '../components/AIChat';
 import { statusBadge } from '../components/ui/Badge';
 import { EXPORT_COUNTRIES, CURRENCIES, INCOTERMS, PAYMENT_TERMS } from '../constants';
+import { downloadCSV } from '../utils/csv';
 
 export default function Finance() {
   const [showNew, setShowNew] = useState(false);
@@ -45,6 +47,18 @@ export default function Finance() {
   const [ftaResult, setFtaResult] = useState<any>(null);
   const [showFtaModal, setShowFtaModal] = useState(false);
   const qc = useQueryClient();
+
+  // Cmd+N shortcut to open New Invoice modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        setShowNew(true);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
@@ -158,6 +172,22 @@ export default function Finance() {
           <p className="text-surface-500 text-sm mt-1">Invoice compliance · Export documentation · Risk analysis</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => downloadCSV(invoices, 'invoices.csv', [
+              { key: 'invoice_number', label: 'Invoice Number' },
+              { key: 'customer_name', label: 'Customer' },
+              { key: 'destination_country', label: 'Country' },
+              { key: 'total_amount', label: 'Total Amount' },
+              { key: 'currency', label: 'Currency' },
+              { key: 'payment_terms', label: 'Payment Terms' },
+              { key: 'incoterms', label: 'Incoterms' },
+              { key: 'status', label: 'Status' },
+              { key: 'invoice_date', label: 'Invoice Date' },
+            ])}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
           <button onClick={() => setShowChecklist(true)} className="btn-secondary flex items-center gap-2">
             <List className="w-4 h-4" /> Document Checklist
           </button>

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import {
@@ -11,7 +11,11 @@ import {
   Zap,
   Menu,
   X,
+  Moon,
+  Sun,
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import CommandPalette from './CommandPalette';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,6 +30,31 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+
+      // Cmd+K -> open command palette
+      if (mod && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+
+      // Cmd+/ -> focus AI chat textarea
+      if (mod && e.key === '/') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('focus-ai-chat'));
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const { data: health } = useQuery({
     queryKey: ['health'],
@@ -133,7 +162,36 @@ export default function Layout({ children }: LayoutProps) {
               {label}
             </NavLink>
           ))}
+
+          {/* Command Palette Hint */}
+          <button
+            onClick={() => setCommandPaletteOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-surface-500 hover:bg-white/5 hover:text-surface-300 border border-transparent transition-all duration-200 mt-3"
+          >
+            <span className="text-xs">Search...</span>
+            <kbd className="ml-auto text-[10px] font-mono bg-white/10 text-surface-400 border border-white/10 rounded px-1.5 py-0.5">
+              {navigator.platform?.includes('Mac') ? '\u2318' : 'Ctrl'}K
+            </kbd>
+          </button>
         </nav>
+
+        {/* Dark Mode Toggle */}
+        <div className="relative px-4 py-3 border-t border-white/5">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-2 w-full bg-white/5 hover:bg-white/10 rounded-lg px-3 py-2 border border-white/5 transition-all duration-200"
+            aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          >
+            {theme === 'light' ? (
+              <Moon className="w-4 h-4 text-accent-400" />
+            ) : (
+              <Sun className="w-4 h-4 text-accent-400" />
+            )}
+            <span className="text-white text-xs font-medium">
+              {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+            </span>
+          </button>
+        </div>
 
         {/* Company Info */}
         <div className="relative p-4 border-t border-white/5">
@@ -149,6 +207,13 @@ export default function Layout({ children }: LayoutProps) {
       <main className="flex-1 overflow-auto md:ml-0">
         <div className="p-6 pt-16 md:pt-6">{children}</div>
       </main>
+
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        navigate={navigate}
+      />
     </div>
   );
 }

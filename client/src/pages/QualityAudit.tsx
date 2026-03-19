@@ -17,12 +17,14 @@ import {
   Info,
   CalendarDays,
   FlaskConical,
+  Download,
 } from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import Toast, { ToastData } from '../components/ui/Toast';
 import AIChat from '../components/AIChat';
 import { statusBadge } from '../components/ui/Badge';
 import { EXPORT_COUNTRIES } from '../constants';
+import { downloadCSV } from '../utils/csv';
 
 function timeAgo(dateStr: string): string {
   if (!dateStr) return '';
@@ -59,6 +61,18 @@ export default function QualityAudit() {
   const [createElapsed, setCreateElapsed] = useState(0);
   const [analyzeElapsed, setAnalyzeElapsed] = useState(0);
   const qc = useQueryClient();
+
+  // Cmd+N shortcut to open New Audit modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        setShowNew(true);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const { data: audits = [], isLoading } = useQuery({
     queryKey: ['audits'],
@@ -174,6 +188,21 @@ export default function QualityAudit() {
           </button>
           <button onClick={() => { setShowShelfLife(true); setShelfLifeResult(null); }} className="btn-secondary flex items-center gap-2">
             <Timer className="w-4 h-4" /> Shelf-Life Predictor
+          </button>
+          <button
+            onClick={() => downloadCSV(audits, 'quality-audits.csv', [
+              { key: 'title', label: 'Title' },
+              { key: 'type', label: 'Type' },
+              { key: 'product', label: 'Product' },
+              { key: 'supplier', label: 'Supplier' },
+              { key: 'location', label: 'Location' },
+              { key: 'status', label: 'Status' },
+              { key: 'score', label: 'Score' },
+              { key: 'created_at', label: 'Created At' },
+            ])}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Export CSV
           </button>
           <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2">
             <Plus className="w-4 h-4" /> New Audit

@@ -21,12 +21,14 @@ import {
   Trash2,
   Info,
   CalendarDays,
+  Download,
 } from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import Toast, { ToastData } from '../components/ui/Toast';
 import AIChat from '../components/AIChat';
 import { statusBadge, priorityBadge } from '../components/ui/Badge';
 import { EXPORT_COUNTRIES } from '../constants';
+import { downloadCSV } from '../utils/csv';
 
 function daysSince(dateStr: string): number {
   if (!dateStr) return 0;
@@ -64,6 +66,18 @@ export default function Complaints() {
   const [createElapsed, setCreateElapsed] = useState(0);
   const clearToast = useCallback(() => setToast(null), []);
   const qc = useQueryClient();
+
+  // Cmd+N shortcut to open Log Complaint modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault();
+        setShowNew(true);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: ['complaints', filter],
@@ -168,9 +182,26 @@ export default function Complaints() {
           <h1 className="text-2xl font-bold text-surface-800">Customer Complaints</h1>
           <p className="text-surface-500 text-sm mt-1">AI classification · Root cause analysis · Response drafting</p>
         </div>
-        <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Log Complaint
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => downloadCSV(complaints, 'complaints.csv', [
+              { key: 'complaint_ref', label: 'Reference' },
+              { key: 'customer_name', label: 'Customer' },
+              { key: 'customer_country', label: 'Country' },
+              { key: 'product', label: 'Product' },
+              { key: 'category', label: 'Category' },
+              { key: 'priority', label: 'Priority' },
+              { key: 'status', label: 'Status' },
+              { key: 'complaint_date', label: 'Date' },
+            ])}
+            className="btn-secondary flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+          <button onClick={() => setShowNew(true)} className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Log Complaint
+          </button>
+        </div>
       </div>
 
       {/* Sample Data Banner */}

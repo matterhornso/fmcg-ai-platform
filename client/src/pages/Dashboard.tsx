@@ -24,6 +24,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { statusBadge, priorityBadge } from '../components/ui/Badge';
 import GuidedTour from '../components/GuidedTour';
+import WorldMap from '../components/WorldMap';
 
 const COLORS = ['#f0a500', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6'];
 
@@ -226,6 +227,50 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* AI Weekly Digest */}
+      {data && (
+        <div className="card-accent p-5" style={{ borderTop: '3px solid var(--accent-400)', background: 'linear-gradient(135deg, #fffbeb 0%, #fefce8 100%)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-5 h-5 text-accent-600" />
+            <h3 className="font-semibold text-surface-800">Weekly Intelligence Brief</h3>
+          </div>
+          <div className="space-y-2 text-sm text-surface-700">
+            <p>
+              {audits?.total || 0} audits this period ({audits?.completed || 0} completed{audits?.avg_score ? `, avg score ${Math.round(audits.avg_score)}%` : ''})
+            </p>
+            <p>
+              {complaints?.total || 0} complaints ({complaints?.critical || 0} critical pending, {complaints?.resolved || 0} resolved)
+            </p>
+            <p>
+              {finance?.total || 0} invoices{finance?.approved_value ? ` (total value $${(finance.approved_value / 1000).toFixed(0)}K)` : ''}
+            </p>
+            {recentComplaints?.some((c: any) => {
+              if (c.priority !== 'critical' || c.status === 'resolved') return false;
+              const age = Date.now() - new Date(c.complaint_date || c.created_at).getTime();
+              return age > 48 * 60 * 60 * 1000;
+            }) && (
+              <p className="text-danger-600 font-medium">
+                {'\u26A0\uFE0F'} Critical complaint pending {'>'} 48h:{' '}
+                {recentComplaints.filter((c: any) => {
+                  if (c.priority !== 'critical' || c.status === 'resolved') return false;
+                  const age = Date.now() - new Date(c.complaint_date || c.created_at).getTime();
+                  return age > 48 * 60 * 60 * 1000;
+                }).slice(0, 1).map((c: any) => `${c.complaint_ref} — ${c.customer_name}`).join('')}
+              </p>
+            )}
+            {(complaints?.total || 0) > (audits?.total || 0) && (
+              <p className="text-accent-700 font-medium italic">
+                Complaint volume outpacing audits — consider increasing audit frequency
+              </p>
+            )}
+          </div>
+          <div className="mt-3 flex items-center gap-1 text-xs text-surface-400">
+            <Clock className="w-3 h-3" />
+            Generated from live data · {new Date().toLocaleString()}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -324,27 +369,30 @@ export default function Dashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Complaints by Country */}
+        {/* Complaints by Country — World Map + Bar Chart */}
         <div className="card p-5">
           <h3 className="font-semibold text-surface-800 mb-4">Complaints by Country</h3>
           {data?.complaints?.byCountry?.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={data.complaints.byCountry || []}>
-                <XAxis dataKey="customer_country" tick={{ fontSize: 11, fill: '#7c786e' }} />
-                <YAxis tick={{ fontSize: 11, fill: '#7c786e' }} />
-                <Tooltip
-                  contentStyle={{
-                    background: '#fff',
-                    border: '1px solid #e8e6df',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    fontFamily: 'Space Mono',
-                    fontSize: '12px',
-                  }}
-                />
-                <Bar dataKey="count" fill="#f0a500" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              <WorldMap data={data.complaints.byCountry || []} />
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={data.complaints.byCountry || []}>
+                  <XAxis dataKey="customer_country" tick={{ fontSize: 11, fill: '#7c786e' }} />
+                  <YAxis tick={{ fontSize: 11, fill: '#7c786e' }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: '#fff',
+                      border: '1px solid #e8e6df',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      fontFamily: 'Space Mono',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Bar dataKey="count" fill="#f0a500" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-[200px] flex flex-col items-center justify-center">
               <Globe className="w-8 h-8 text-surface-300 mb-2" />

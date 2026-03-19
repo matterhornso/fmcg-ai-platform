@@ -96,11 +96,22 @@ export default function AIChat({ agentType, context, placeholder }: AIChatProps)
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const config = agentConfig[agentType];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Listen for focus-ai-chat custom event (triggered by Cmd+/)
+  useEffect(() => {
+    const handleFocus = () => {
+      textareaRef.current?.focus();
+      textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    window.addEventListener('focus-ai-chat', handleFocus);
+    return () => window.removeEventListener('focus-ai-chat', handleFocus);
+  }, []);
 
   const sendPrompt = async (text: string) => {
     if (loading) return;
@@ -256,6 +267,7 @@ export default function AIChat({ agentType, context, placeholder }: AIChatProps)
       <div className="border-t border-surface-200 p-3 bg-surface-50/50">
         <div className="flex gap-2">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

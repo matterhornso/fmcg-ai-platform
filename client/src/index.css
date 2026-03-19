@@ -306,6 +306,33 @@ body::after {
   background: transparent;
 }
 
+/* Dark mode overrides */
+[data-theme="dark"] body { background: #0f0f23; color: #e8e6df; }
+[data-theme="dark"] body::before { opacity: 0.008; }
+[data-theme="dark"] .card { background: #1a1a2e; border-color: rgba(255,255,255,0.08); background-image: none; }
+[data-theme="dark"] .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+[data-theme="dark"] .card-hover-lift:hover { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
+[data-theme="dark"] .input { background: #1a1a2e; border-color: rgba(255,255,255,0.1); color: #e8e6df; }
+[data-theme="dark"] .input::placeholder { color: #6b6860; }
+[data-theme="dark"] .btn-secondary { background: #1a1a2e; color: #e8e6df; border-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .btn-secondary:hover { background: #252540; border-color: rgba(255,255,255,0.15); }
+[data-theme="dark"] .label { color: #a8a49a; }
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: #e8e6df; }
+[data-theme="dark"] main { background: #0f0f23; }
+[data-theme="dark"] p { color: #c4c0b8; }
+[data-theme="dark"] .text-surface-800 { color: #e8e6df; }
+[data-theme="dark"] .text-surface-500 { color: #a8a49a; }
+[data-theme="dark"] .text-surface-400 { color: #8a8680; }
+[data-theme="dark"] .bg-surface-100 { background-color: #0f0f23; }
+[data-theme="dark"] .bg-surface-50 { background-color: #151530; }
+[data-theme="dark"] .bg-white { background-color: #1a1a2e; }
+[data-theme="dark"] .border-surface-200 { border-color: rgba(255,255,255,0.08); }
+[data-theme="dark"] .border-surface-200\/50 { border-color: rgba(255,255,255,0.05); }
+[data-theme="dark"] .border-surface-200\/80 { border-color: rgba(255,255,255,0.06); }
+[data-theme="dark"] .skeleton { background: linear-gradient(90deg, #1a1a2e 25%, #252540 50%, #1a1a2e 75%); background-size: 200% 100%; }
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #0f0f23; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #2a2a4a; }
+
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
