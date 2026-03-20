@@ -146,3 +146,47 @@ Fixed bottom-right. Auto-dismiss 4s. Variants: success (green), error (red), war
 - **Domain-native**: Use FMCG/export terminology naturally (CAPA, Incoterms, HACCP, RCA) — the audience knows these terms
 - **Helpful empty states**: "No audits yet. Create your first AI-powered audit." not just "No data."
 - **Sample data labeled**: Always mark seed/demo data clearly
+
+---
+
+## Dark Mode
+
+Toggle via Moon/Sun icon in sidebar footer. Persisted to `localStorage` under `fmcg_theme`. Applied via `[data-theme="dark"]` CSS attribute on `<html>`.
+
+### Token Mappings (Light → Dark)
+
+| Element | Light | Dark |
+|---------|-------|------|
+| Page background | surface-100 (#f5f4f0) | surface-900 (#0f0f23) |
+| Card background | white | surface-800 (#1a1a2e) |
+| Card border | surface-200/80 | white/8% |
+| Primary text | surface-800 (#1a1a2e) | surface-200 (#e8e6df) |
+| Secondary text | surface-500 (#656059) | surface-400 (#8a857b) |
+| Input background | white | surface-800 (#1a1a2e) |
+| Input border | surface-200 | white/10% |
+| btn-secondary bg | white | surface-800 (#1a1a2e) |
+| Headings | surface-800 | surface-200 |
+| Scrollbar track | surface-100 | surface-900 |
+| Skeleton shimmer | surface-100/200 | surface-800/700 |
+
+### Rules
+- All semantic colors (accent, success, danger, warning, info) remain the same in dark mode
+- The amber accent (#f0a500) works on both light and dark backgrounds
+- Dark mode must maintain WCAG AA contrast — surface-200 text on surface-900 bg = ~10:1 ratio (exceeds AA)
+- New components MUST include `[data-theme="dark"]` overrides or they will be unreadable
+
+---
+
+## New Components (v2)
+
+### Command Palette
+Fullscreen overlay (`Cmd+K`). Dark backdrop (surface-900/70 + blur). White/dark card (max-w-2xl, centered, rounded-2xl). Large search input (text-lg) with amber focus ring. Results grouped by category with icon + title + subtitle. Keyboard navigation (arrow keys + Enter + Escape). Searches React Query cache — no API calls.
+
+### World Map (Complaint Heatmap)
+Inline SVG schematic with 17 country nodes connected to central India node. Dark background (surface-800). Node colors: gray (0 complaints), amber (1-2), red (3+). Hover tooltips. Clickable navigation to complaints page.
+
+### Weekly Intelligence Brief
+Card-accent (amber top border) on Dashboard. Generated client-side from dashboard stats. Shows: audit summary, complaint alerts, invoice totals, trend analysis. Timestamp: "Generated from live data."
+
+### Guided Tour (Shepherd.js)
+12-step walkthrough triggered by "Take a Tour" button. Amber header gradient on tour popups. Navigates across all 4 pages. Glow hint animation on button for first-time users. Completion tracked in localStorage.
