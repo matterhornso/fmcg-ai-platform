@@ -5,8 +5,8 @@ export function downloadCSV(data: any[], filename: string, columns: {key: string
       let val = row[c.key] ?? '';
       // Handle JSON fields
       if (typeof val === 'object') val = JSON.stringify(val);
-      // Escape commas and quotes
-      val = String(val).replace(/"/g, '""');
+      // Escape commas, quotes, and newlines
+      val = String(val).replace(/"/g, '""').replace(/\r?\n/g, ' ');
       return `"${val}"`;
     }).join(',')
   );
